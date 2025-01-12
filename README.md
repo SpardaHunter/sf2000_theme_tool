@@ -1,12 +1,18 @@
 # SF2000 Theme Tool by Sparda and friends
 
-This tool is the combination of the multiples tools already made by ***sparda*** to generate images for themes, embedding images in zfb files and much more (*See tools section*).
+This tool is the combination of multiples tools made by ***sparda*** to generate images for themes, embedding images in zfb files and much more (*See tools section*).
+
+You can follow the progress of this tool in the [SF200 discord channel](https://discord.gg/retrohandhelds).
+
+Sparda friends list (aka developers that made some progress or modify the tools made by ***sparda***): ***Q_ta***, ***Desoxyn*** and ***me*** (***AnxoNueve***)
 
 ## Tools
 
-- Full-screen png image generator function
-- Zfb embedding function (Capable of embedding full-screen images)
-- Game category section changer function (sfcdr, m0x.mm, etc.)
+- ZFB generator - TODO explanation of the tool
+- Game list updater - TODO explanation of the tool
+- Theme image generator - TODO explanation of the tool
+- Menu image generator - TODO explanation of the tool
+- Game cover generator - TODO explanation of the tool
 
 ## Requirements (for developers)
 
@@ -57,5 +63,9 @@ List of features to do:
 
 *HP - (High priority) / LP (Low priority)*
 
-- [ ] Complete list of features - HP
+- [ ] Add ZFB generator - HP
+- [ ] Add game list updater - HP
+- [ ] Add theme image generator - HP
+- [ ] Add menu image generator - HP
+- [ ] Add game cover generator - HP
 - [ ] Make executables for the different OS - LP

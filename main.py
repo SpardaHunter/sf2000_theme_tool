@@ -7,7 +7,7 @@ class SF2000ThemeTool(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title('SF2000 Theme Tool')
-        self.iconphoto(False, tk.PhotoImage(file='assets/images/sf2000-theme-tool-frog.png'))
+        #self.iconphoto(False, tk.PhotoImage(file='assets/images/sf2000-theme-tool-frog.png'))
         self.geometry('800x600')
 
         self.menu = SideMenu(self)

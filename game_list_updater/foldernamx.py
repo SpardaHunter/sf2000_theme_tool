@@ -8,96 +8,177 @@ import psutil
 class StopExecution(Exception):
     pass
 
-drive_combobox = None
-path_entry = None
-system_var = None
-system_menu = None
-custom_path_var = None
 
-def browse_drive():
-    global drive_combobox
-    if not drive_combobox:
-        return
+class FrogtoolGUIx(tk.Frame):
+    def __init__(self, root):
+        super().__init__(root)
+        self.root = root
+        self.grid(row=0, column=0, sticky="nswe")  # Asegúrate de usar grid aquí
 
-    drives = [drive.device for drive in psutil.disk_partitions()] if os.name == "nt" else [drive.mountpoint for drive in psutil.disk_partitions()]
-    drive_combobox['values'] = drives
-    if drives:
-        drive_combobox.set(drives[0])
+        self.drive_combobox = None
+        self.path_entry = None
+        self.custom_path_var = tk.BooleanVar()
+        self.system_var = tk.StringVar(root)
+        self.system_var.set("ALL")
+        self.system_menu = None
 
-def on_drive_selected(event):
-    global custom_path_var, systems, system_var, system_menu
-    # Reiniciar systems antes de buscar el nuevo FoldernamX.ini
-    systems = {
-        "FC": ["m01.ta", "m01.ne", "m01.bv"],
-        "SFC": ["m02.ta", "m02.ne", "m02.bv"],
-        "MD": ["m03.ta", "m03.ne", "m03.bv"],
-        "GB": ["m04.ta", "m04.ne", "m04.bv"],
-        "GBC": ["m05.ta", "m05.ne", "m05.bv"],
-        "GBA": ["m06.ta", "m06.ne", "m06.bv"],
-        "ARCADE": ["m07.ta", "m07.ne", "m07.bv"],
-        "SEGA": ["m08.ta", "m08.ne", "m08.bv"],
-        "ATARI_NGP": ["m09.ta", "m09.ne", "m09.bv"],
-        "WONDERSWAN": ["m10.ta", "m10.ne", "m10.bv"],
-        "PCE": ["m11.ta", "m11.ne", "m11.bv"],
-        "MULTICORE": ["m12.ta", "m12.ne", "m12.bv"],
-        "ALL": []  # Placeholder for "ALL" option
-    }
+        self.systems = {
+            "FC": ["m01.ta", "m01.ne", "m01.bv"],
+            "SFC": ["m02.ta", "m02.ne", "m02.bv"],
+            "MD": ["m03.ta", "m03.ne", "m03.bv"],
+            "GB": ["m04.ta", "m04.ne", "m04.bv"],
+            "GBC": ["m05.ta", "m05.ne", "m05.bv"],
+            "GBA": ["m06.ta", "m06.ne", "m06.bv"],
+            "ARCADE": ["m07.ta", "m07.ne", "m07.bv"],
+            "SEGA": ["m08.ta", "m08.ne", "m08.bv"],
+            "ATARI_NGP": ["m09.ta", "m09.ne", "m09.bv"],
+            "WONDERSWAN": ["m10.ta", "m10.ne", "m10.bv"],
+            "PCE": ["m11.ta", "m11.ne", "m11.bv"],
+            "MULTICORE": ["m12.ta", "m12.ne", "m12.bv"],
+            "ALL": []  # Placeholder for "ALL" option
+        }
+        self.supported_rom_ext = [
+            "bkp", "zip", "zfc", "zsf", "zmd", "zgb", "zfb", "smc", "fig", "sfc", "gd3", "gd7", "dx2", "bsx", "swc", "nes",
+            "nfc", "fds", "unf", "gba", "agb", "gbz", "gbc", "gb", "sgb", "bin", "md", "smd", "gen", "sms"
+        ]
+
+        self.setup_gui()
+
+
+
+    def setup_gui(self):
+        # Etiquetas y botones para la UI
+        drive_label = tk.Label(self, text="SF2000 SD Card Location:")
+        self.drive_combobox = ttk.Combobox(self, state="readonly", width=37)
+        self.drive_combobox.bind("<<ComboboxSelected>>", self.on_drive_selected)
+
+        custom_path_checkbox = ttk.Checkbutton(self, text="Use Custom Path", variable=self.custom_path_var)
+        path_label = tk.Label(self, text="Custom Path:")
+        self.path_entry = ttk.Entry(self, width=40)
+        path_button = ttk.Button(self, text="Browse", command=self.select_folder)
+
+        system_label = tk.Label(self, text="Select System:")
+        self.system_menu = tk.OptionMenu(self, self.system_var, *self.systems.keys())
+
+        execute_button = tk.Button(self, text="Update Games List", command=self.execute_conversion)
+
+        # Usamos grid() en lugar de pack() para todo
+        drive_label.grid(row=0, column=0, pady=5)
+        self.drive_combobox.grid(row=0, column=1, pady=5)
+        custom_path_checkbox.grid(row=1, column=0, columnspan=2, pady=5)
+        path_label.grid(row=2, column=0, pady=5)
+        self.path_entry.grid(row=2, column=1, pady=5)
+        path_button.grid(row=2, column=2, pady=5)
+        system_label.grid(row=3, column=0, pady=5)
+        self.system_menu.grid(row=3, column=1, pady=5)
+        execute_button.grid(row=4, column=0, columnspan=2, pady=10)
     
-    if not custom_path_var.get():  # Solo busca automáticamente si el checkbox está desactivado
-        check_and_find_ini()
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_columnconfigure(1, weight=3)
+        self.grid_rowconfigure(0, weight=1)
+        self.grid_rowconfigure(1, weight=1)
+        self.grid_rowconfigure(2, weight=1)
+        self.grid_rowconfigure(3, weight=1)
+        self.grid_rowconfigure(4, weight=1)
+    
+        # Inicializamos la búsqueda de drives después de que la ventana se muestre
+        self.root.after(100, self.browse_drive)
 
-def int_to_4_bytes_reverse(src_int):
-    hex_string = format(src_int, "x").rjust(8, "0")[0:8]
-    return binascii.unhexlify(hex_string)[::-1]
 
-def find_foldernamx_ini(path):
-    global systems, system_var, system_menu
-    ini_path = os.path.join(path, "Resources", "FoldernamX.ini")
-    if not os.path.exists(ini_path):
-        messagebox.showerror("Error", f"File not found: {ini_path}")
-        return
+    def browse_drive(self):
+        drives = [drive.device for drive in psutil.disk_partitions()] if os.name == "nt" else [drive.mountpoint for drive in psutil.disk_partitions()]
+        self.drive_combobox['values'] = drives
+        if drives:
+            self.drive_combobox.set(drives[0])
 
-    try:
-        with open(ini_path, "r", encoding="utf-8") as file:
-            lines = file.readlines()
+    def on_drive_selected(self, event):
+        if not self.custom_path_var.get():  # Solo busca automáticamente si el checkbox está desactivado
+            self.check_and_find_ini()
 
-        if len(lines) < 3:
-            messagebox.showerror("Error", f"Insufficient lines in {ini_path}")
+    def select_folder(self):
+        folder_selected = filedialog.askdirectory(title="Select Folder")
+        if folder_selected:
+            self.path_entry.delete(0, tk.END)
+            self.path_entry.insert(0, folder_selected)
+            self.check_and_find_ini()
+
+    def check_and_find_ini(self):
+        path = self.path_entry.get() if self.custom_path_var.get() else self.drive_combobox.get()
+        if path:
+            self.find_foldernamx_ini(path)
+
+    def find_foldernamx_ini(self, path):
+        ini_path = os.path.join(path, "Resources", "FoldernamX.ini")
+        if not os.path.exists(ini_path):
+            messagebox.showerror("Error", f"File not found: {ini_path}")
             return
-
-        last_number_line = lines[-3].strip().split()[0]
+    
         try:
-            num_lines = int(last_number_line) - 1
-        except ValueError:
-            messagebox.showerror("Error", f"Invalid number format in antepenultimate line: {last_number_line}")
+            with open(ini_path, "r", encoding="utf-8") as file:
+                lines = file.readlines()
+    
+            if len(lines) < 3:
+                messagebox.showerror("Error", f"Insufficient lines in {ini_path}")
+                return
+    
+            last_number_line = lines[-3].strip().split()[0]
+            try:
+                num_lines = int(last_number_line) - 1
+            except ValueError:
+                messagebox.showerror("Error", f"Invalid number format in antepenultimate line: {last_number_line}")
+                return
+    
+            if len(lines) < num_lines + 4:
+                messagebox.showerror("Error", f"Not enough lines in {ini_path} to process {num_lines}.")
+                return
+    
+            new_keys = []
+            for line in lines[4:4 + num_lines]:
+                parts = line.strip().split(" ", 1)
+                key = parts[1] if len(parts) > 1 else parts[0]
+                new_keys.append(key)
+    
+            updated_systems = dict(zip(new_keys, self.systems.values()))
+            self.systems = updated_systems
+    
+            self.systems["ALL"] = []
+    
+            menu = self.system_menu["menu"]
+            menu.delete(0, "end")
+            for key in self.systems.keys():
+                menu.add_command(label=key, command=tk._setit(self.system_var, key))
+    
+            self.system_var.set("ALL")
+            messagebox.showinfo("Success", "Systems updated successfully from FoldernamX.ini!")
+            print("Updated systems:", self.systems)
+    
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to read or process {ini_path}: {e}")
+
+
+    def execute_conversion(self):
+        path = self.path_entry.get() if self.custom_path_var.get() else self.drive_combobox.get()
+        system = self.system_var.get()
+
+        if not path:
+            messagebox.showerror("Error", "No path has been selected.")
             return
 
-        if len(lines) < num_lines + 4:
-            messagebox.showerror("Error", f"Not enough lines in {ini_path} to process {num_lines}.")
-            return
+        if system == "ALL":
+            keys_to_process = [key for key in self.systems.keys() if key != "ALL"]
+        else:
+            keys_to_process = [system]
 
-        new_keys = []
-        for line in lines[4:4 + num_lines]:
-            parts = line.strip().split(" ", 1)
-            key = parts[1] if len(parts) > 1 else parts[0]
-            new_keys.append(key)
+        try:
+            for syskey in keys_to_process:
+                self.process_sys(path, syskey)
+            messagebox.showinfo("Message", "Updated games list!")
+        except StopExecution:
+            print("Error updating game list.")
 
-        updated_systems = dict(zip(new_keys, systems.values()))
-        systems = updated_systems
-
-        systems["ALL"] = []
-
-        menu = system_menu["menu"]
-        menu.delete(0, "end")
-        for key in systems.keys():
-            menu.add_command(label=key, command=tk._setit(system_var, key))
-
-        system_var.set("ALL")
-        messagebox.showinfo("Success", "Systems updated successfully from FoldernamX.ini!")
-        print("Updated systems:", systems)
-
-    except Exception as e:
-        messagebox.showerror("Error", f"Failed to read or process {ini_path}: {e}")
+    def process_sys(self, path, system):
+        # Implementación del procesamiento del sistema
+        pass
 
 def check_and_find_ini():
     global custom_path_var, path_entry, drive_combobox, systems
@@ -215,9 +296,9 @@ def show_popup():
     messagebox.showinfo("Message", "Updated games list!")
 
 def run():
-    global drive_combobox, path_entry, custom_path_var, system_var, system_menu
     root = tk.Tk()
-    root.title("Frogtool GUI")
+    app = FrogtoolGUIx(root)
+    root.mainloop()
 
     def execute_conversion():
         path = path_entry.get() if custom_path_var.get() else drive_combobox.get()

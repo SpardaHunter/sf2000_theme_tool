@@ -1,6 +1,8 @@
 import tkinter as tk
 from menu_image_generator.menu_image_generator import MenuImageGenerator
 from game_list_updater.game_list_updater import GameListUpdater
+from game_list_updater.foldernamx import FrogtoolGUIx
+from game_list_updater.foldername import FrogtoolGUIe
 
 class SF2000ThemeTool(tk.Tk):
     def __init__(self):

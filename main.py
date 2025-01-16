@@ -3,6 +3,8 @@ from menu_image_generator.menu_image_generator import MenuImageGenerator
 from game_list_updater.game_list_updater import GameListUpdater
 from game_list_updater.foldernamx import FrogtoolGUIx
 from game_list_updater.foldername import FrogtoolGUIe
+from zfb_generator.zfb_generator import ZFBGenerator
+from zfb_generator.ZFBimagesTool import ZFBimagesTool
 
 class SF2000ThemeTool(tk.Tk):
     def __init__(self):
@@ -93,12 +95,6 @@ class ThemeImageGenerator(tk.Frame):
     def __init__(self, root):
         super().__init__(root)
         self.label = tk.Label(self, text="Theme Image Generator")
-        self.label.pack(pady=20)
-
-class ZFBGenerator(tk.Frame):
-    def __init__(self, root):
-        super().__init__(root)
-        self.label = tk.Label(self, text="ZFB Generator")
         self.label.pack(pady=20)
 
 if __name__ == '__main__':

@@ -6,6 +6,9 @@ from game_list_updater.foldername import FrogtoolGUIe
 from zfb_generator.zfb_generator import ZFBGenerator
 from zfb_generator.ZFBimagesTool import ZFBimagesTool
 from game_cover_generator.Theme_Wheel import PhotoMergerApp
+from theme_image_generator.theme_image_generator import ThemeGenerator
+#from theme_image_generator.Theme_Editor import ImageProcessorApp
+#from theme_image_generator.Theme_Editor_SOP import ImageProcessorAppSOP
 
 class SF2000ThemeTool(tk.Tk):
     def __init__(self):
@@ -74,7 +77,7 @@ class SideMenu(tk.Frame):
             case 'menu_image_generator':
                 self.master.change_frame(MenuImageGenerator(self.master))
             case 'theme_image_generator':
-                self.master.change_frame(ThemeImageGenerator(self.master))
+                self.master.change_frame(ThemeGenerator(self.master))
             case 'zfb_generator':
                 self.master.change_frame(ZFBGenerator(self.master))
             case _:
@@ -86,12 +89,6 @@ class Home(tk.Frame):
         self.label = tk.Label(self, text="Bienvenido a la aplicación")
         self.label.pack(pady=20)
 
-
-class ThemeImageGenerator(tk.Frame):
-    def __init__(self, root):
-        super().__init__(root)
-        self.label = tk.Label(self, text="Theme Image Generator")
-        self.label.pack(pady=20)
 
 if __name__ == '__main__':
     app = SF2000ThemeTool()

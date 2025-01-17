@@ -5,6 +5,7 @@ from game_list_updater.foldernamx import FrogtoolGUIx
 from game_list_updater.foldername import FrogtoolGUIe
 from zfb_generator.zfb_generator import ZFBGenerator
 from zfb_generator.ZFBimagesTool import ZFBimagesTool
+from game_cover_generator.Theme_Wheel import PhotoMergerApp
 
 class SF2000ThemeTool(tk.Tk):
     def __init__(self):
@@ -69,7 +70,7 @@ class SideMenu(tk.Frame):
             case 'game_list_updater':
                 self.master.change_frame(GameListUpdater(self.master))
             case 'game_cover_generator':
-                self.master.change_frame(GameCoverGenerator(self.master))
+                self.master.change_frame(PhotoMergerApp(self.master))
             case 'menu_image_generator':
                 self.master.change_frame(MenuImageGenerator(self.master))
             case 'theme_image_generator':
@@ -85,11 +86,6 @@ class Home(tk.Frame):
         self.label = tk.Label(self, text="Bienvenido a la aplicación")
         self.label.pack(pady=20)
 
-class GameCoverGenerator(tk.Frame):
-    def __init__(self, root):
-        super().__init__(root)
-        self.label = tk.Label(self, text="Game Cover Generator")
-        self.label.pack(pady=20)
 
 class ThemeImageGenerator(tk.Frame):
     def __init__(self, root):
